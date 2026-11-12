@@ -156,7 +156,7 @@ Bug reports, ideas and pull requests are welcome. Please [open an issue](https:/
 2. Make your change in `src/`. Keep the diff focused and match the surrounding style. Keep the plugin working on desktop and mobile (no Node or Electron APIs in `src/`), and do not lower the compile target (`es2018`).
 3. Run `npm run check` (type check, build and build verification). It is what CI runs. If you changed behavior and have Obsidian installed, also run `npm run build && npm run test:e2e` and add a check to `scripts/e2e-obsidian.mjs` for your change.
 4. Add a line to the top of the `## 1.0.x` list in [doc/change-log.md](https://github.com/SamPlaysKeys/obsidian-folder-note-revamped-plugin/blob/main/doc/change-log.md). End it with the version it ships in, for example `(1.0.6)`, or `, 1.0.6)` after an issue link. That line becomes the GitHub release notes, so write it for users. Credit whoever reported or fixed the issue with a link to their profile.
-5. Open a pull request against `main` with a short imperative title and a reference to the issue (`Refs #N`). A pull request does not need to bump the version; the maintainer does that when releasing.
+5. Open a pull request against `main` with a short imperative title and a reference to the issue (`Refs #N`). The pull request template has a checklist, including a confirmation that you ran `npm run check` and the end-to-end test (CI cannot run the end-to-end test, so it relies on you). A pull request does not need to bump the version; the maintainer does that when releasing.
 
 If your change is based on a PR or issue from the original plugin, say which one in the commit message, add a `Co-authored-by: Name <id+login@users.noreply.github.com>` trailer for its author, and link the issue as `https://redirect.github.com/xpgo/obsidian-folder-note-plugin/issues/N`. Please do not comment on the original repo on our behalf.
 
@@ -168,7 +168,7 @@ Details for AI coding agents and maintainers are in [AGENTS.md](https://github.c
 2. Make sure `doc/change-log.md` has entries tagged with that version. `npm run check` fails if there are none.
 3. `npm run check`, commit and push to `main`.
 4. `git tag <version> && git push origin <version>`. The tag is exactly the version, with no `v` prefix (BRAT requires that).
-5. The release workflow publishes a release with `main.js`, `manifest.json`, `styles.css` and a zip, and uses the change log entries for that version as the release notes. If several tags are pushed close together, check afterwards that the newest version is the one marked Latest (`gh release list`); fix it with `gh release edit <version> --latest`.
+5. The release workflow publishes a release with `main.js`, `manifest.json`, `styles.css`, and uses the change log entries for that version as the release notes. If several tags are pushed close together, check afterwards that the newest version is the one marked Latest (`gh release list`); fix it with `gh release edit <version> --latest`.
 
 ## License
 

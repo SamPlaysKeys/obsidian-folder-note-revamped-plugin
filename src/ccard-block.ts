@@ -2,7 +2,7 @@
 import { App, MarkdownPostProcessorContext, TFolder} from "obsidian";
 import { FolderBrief } from './folder-brief';
 import { FolderNote } from './folder-note';
-import { CardBlock } from './card-item';
+import { CardBlock, CardBlockYaml } from './card-item';
 import * as Yaml from 'yaml';
 
 // ------------------------------------------------------------
@@ -19,7 +19,7 @@ export class ccardProcessor {
     async run(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, folderNote: FolderNote) {
         // Change cards code to html element
         try {
-            const yaml = Yaml.parse(source);
+            const yaml = Yaml.parse(source) as CardBlockYaml | null;
             if (!yaml) return;
 
             // set default
@@ -41,14 +41,14 @@ export class ccardProcessor {
             }
         }
         catch (error) {
-            console.log('Code Block: ccard', error)
+            console.error('Code Block: ccard', error)
         }
     }
 
     // static
-    async docElemStatic(yaml: any) {
+    async docElemStatic(yaml: CardBlockYaml) {
         if (yaml.items && (yaml.items instanceof Array)) {
-            let cardBlock = new CardBlock();
+            const cardBlock = new CardBlock();
             cardBlock.fromYamlCards(yaml);
             const cardsElem = cardBlock.getDocElement(this.app);
             return cardsElem;
@@ -57,12 +57,12 @@ export class ccardProcessor {
     }
 
     // folder_brief_live
-    async docElemFolderBriefLive(yaml: any, folderNote: FolderNote, ctx: MarkdownPostProcessorContext) {
-        var folderPath = '';
+    async docElemFolderBriefLive(yaml: CardBlockYaml, folderNote: FolderNote, ctx: MarkdownPostProcessorContext) {
+        let folderPath = '';
         // the note that contains the block, not the active note (hover previews, embeds, canvas)
-        var notePath = ctx.sourcePath;
+        const notePath = ctx.sourcePath;
         if (yaml.folder) {
-            let folderExist = yaml.folder == '/' ||
+            const folderExist = yaml.folder == '/' ||
                 this.app.vault.getAbstractFileByPath(yaml.folder) instanceof TFolder;
             if (folderExist) folderPath = yaml.folder;
         }
@@ -71,7 +71,7 @@ export class ccardProcessor {
         }
         
         if (folderPath.length > 0) {
-            let folderBrief = new FolderBrief(this.app);
+            const folderBrief = new FolderBrief(this.app);
 
             // brief options
             if (yaml.briefMax) {
@@ -82,7 +82,7 @@ export class ccardProcessor {
             }
 
             // cards options
-            let briefCards = await folderBrief.makeBriefCards(folderPath, notePath);
+            const briefCards = await folderBrief.makeBriefCards(folderPath, notePath);
             briefCards.fromYamlOptions(yaml);
             
             // generate el

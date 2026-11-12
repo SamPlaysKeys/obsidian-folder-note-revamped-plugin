@@ -1,9 +1,9 @@
 import {
     Plugin,
-    MarkdownView
+    MarkdownView,
+    TAbstractFile
 } from 'obsidian';
 
-import * as Yaml from 'yaml';
 import { FolderBrief } from './folder-brief';
 import { FolderNote } from './folder-note';
 import { ccardProcessor } from './ccard-block';
@@ -18,24 +18,18 @@ import {
 // FolderNotePlugin
 // ------------------------------------------------------------
 
-enum NoteFileMethod {
-    Index, Inside, Outside,
-}
-
 export default class FolderNotePlugin extends Plugin {
     settings: FolderNotePluginSettings;
     folderNote: FolderNote;
 
     async onload() {
-        console.log('Loading Folder Note Revamped plugin.');
-
         // load settings
         await this.loadSettings();
         
         // for ccard rendering
         this.registerMarkdownCodeBlockProcessor('ccard', async (source, el, ctx) => {
             // run processer
-            let proc = new ccardProcessor(this.app);
+            const proc = new ccardProcessor(this.app);
             await proc.run(source, el, ctx, this.folderNote);
         });
 
@@ -51,15 +45,15 @@ export default class FolderNotePlugin extends Plugin {
         this.addSettingTab(new FolderNoteSettingTab(this.app, this));
 
         // for file explorer click
-        this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+        this.registerDomEvent(activeDocument, 'click', (evt: MouseEvent) => {
             // get the folder path
             const elemTarget = (evt.target as Element);
-            var folderElem = this.folderNote.setByFolderElement(elemTarget);
+            const folderElem = this.folderNote.setByFolderElement(elemTarget);
 
             // open the infor note
             if (this.folderNote.folderPath.length > 0) {
                 // any key?
-                var newKey = false;
+                let newKey = false;
                 if (this.settings.folderNoteKey == 'ctrl') {
                     newKey = (evt.ctrlKey || evt.metaKey);
                 }
@@ -68,7 +62,7 @@ export default class FolderNotePlugin extends Plugin {
                 }
 
                 // open it
-                this.folderNote.openFolderNote(folderElem, newKey);
+                void this.folderNote.openFolderNote(folderElem, newKey);
             }
         });
 
@@ -82,9 +76,9 @@ export default class FolderNotePlugin extends Plugin {
                     const activeFile = this.app.workspace.getActiveFile();
                     if (activeFile) {
                         // generate brief
-                        let folderBrief = new FolderBrief(this.app);
-                        let folderPath = await this.folderNote.getNoteFolderBriefPath(activeFile.path);
-                        let briefCards = await folderBrief.makeBriefCards(folderPath, activeFile.path);
+                        const folderBrief = new FolderBrief(this.app);
+                        const folderPath = await this.folderNote.getNoteFolderBriefPath(activeFile.path);
+                        const briefCards = await folderBrief.makeBriefCards(folderPath, activeFile.path);
                         editor.replaceSelection(briefCards.getYamlCode(), "end");
                     }
                 }
@@ -109,10 +103,6 @@ export default class FolderNotePlugin extends Plugin {
         });
     }
 
-    onunload() {
-        console.log('Unloading Folder Note Revamped plugin');
-    }
-
     updateFolderNote() {
         this.folderNote = new FolderNote(
             this.app, 
@@ -123,7 +113,7 @@ export default class FolderNotePlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign(FOLDER_NOTE_DEFAULT_SETTINGS, await this.loadData());
+        this.settings = Object.assign({}, FOLDER_NOTE_DEFAULT_SETTINGS, (await this.loadData()) as Partial<FolderNotePluginSettings> | null);
         this.updateFolderNote();
     }
 
@@ -133,14 +123,14 @@ export default class FolderNotePlugin extends Plugin {
     }
 
     // keep notefile name to be the folder name
-    async handleFileRename(newPath: any, oldPath: any) {
+    async handleFileRename(newPath: TAbstractFile, oldPath: string) {
         if (!this.settings.folderNoteAutoRename) return;
-        this.folderNote.syncName(newPath, oldPath);
+        await this.folderNote.syncName(newPath, oldPath);
     }
 
     // delete folder
-    async handleFileDelete(pathToDel: any) {
+    async handleFileDelete(pathToDel: TAbstractFile) {
         if (!this.settings.folderDelete2Note) return;
-        this.folderNote.deleteFolder(pathToDel.path);
+        await this.folderNote.deleteFolder(pathToDel.path);
     }
 }
