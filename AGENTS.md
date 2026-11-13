@@ -99,12 +99,9 @@ Versioning restarted at `1.0.1` for this fork (the original's last release was `
 
 Good starting points, roughly by value:
 
-- `ccard-block.ts` and `folder-brief.ts` use `workspace.getActiveFile()` / `getActiveViewOfType` instead of the processor's `ctx.sourcePath`. This breaks in hover previews, embeds and canvas.
-- `main.ts`: `Object.assign(FOLDER_NOTE_DEFAULT_SETTINGS, await loadData())` mutates the defaults object; use `Object.assign({}, DEFAULTS, data)`.
 - The document-level click listener is registered on the main window only; popout windows are missed (use `registerDomEvent` per window / `activeDocument`).
-- File operations use `vault.adapter.rename/write/list/exists/mkdir` and `trashLocal`. Prefer `app.fileManager.renameFile` (updates links), `vault.create/rename`, `fileManager.trashFile`. `adapter.list` includes hidden folders.
+- Renames go through `FolderNote.renamePath` (`app.fileManager.renameFile`, which updates links). Other file operations still use `vault.adapter.write/list/exists/mkdir` and `trashLocal`. Prefer `vault.create`, `fileManager.trashFile` (needs a higher `minAppVersion`). `adapter.list` includes hidden folders.
 - Null dereferences (`getActiveFile()`, `lastElementChild`, etc.) need guards.
-- `styles.css` uses CSS variables that no longer exist (`--background-accent`, `--text-nav-selected`); replace with current theme variables.
 - `PluginSettingTab.display()` is deprecated since Obsidian 1.13.0 (still works).
 - `minAppVersion` is `0.16.0`, set from the `@since` tags of the Obsidian APIs the code uses (`openLinkText` is the newest, 0.16.0). It has not been tested on an Obsidian that old; recheck the tags whenever you add an API call.
 - Toolchain: `obsidian` devDependency is a GitHub master tarball (unpinned); Rollup 2 / TS 4.9; consider esbuild (as in Obsidian's sample plugin) and TS 5.

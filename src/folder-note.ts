@@ -157,6 +157,14 @@ export class FolderNote {
         return folderPath;
     }
 
+    // `Foo/Foo.md` or `A/Foo/Foo.md`, but not `Meeting Notes/Notes.md`:
+    // the folder name must be a whole path segment
+    isInsideFolderNotePath(notePath: string) {
+        const noteBaseName = this.getFileBaseName(notePath);
+        const suffix = `${noteBaseName}/${noteBaseName}.md`;
+        return notePath == suffix || notePath.endsWith('/' + suffix);
+    }
+
     // check if it is folder note name
     async isFolderNotePath(notePath: string) {
         let isFN = false;
@@ -166,10 +174,7 @@ export class FolderNote {
             isFN = notePath.endsWith(`/${this.indexBase}.md`);
         }
         else if (this.method == NoteFileMethod.Inside) {
-            const noteBaseName = this.getFileBaseName(notePath);
-            if (notePath.endsWith(noteBaseName + '/' + noteBaseName + '.md'))  {
-                isFN = true;
-            }
+            isFN = this.isInsideFolderNotePath(notePath);
         }
         else if (this.method == NoteFileMethod.Outside) {
             const folderPath = notePath.substring(0, notePath.length-3);
@@ -185,8 +190,7 @@ export class FolderNote {
             isFN = notePath.endsWith(`/${this.indexBase}.md`);
         }
         else if (this.method == NoteFileMethod.Inside) {
-            const noteBaseName = this.getFileBaseName(notePath);
-            isFN = notePath.endsWith(`${noteBaseName}/${noteBaseName}.md`);
+            isFN = this.isInsideFolderNotePath(notePath);
         }
         else if (this.method == NoteFileMethod.Outside) {
             const folderPath = notePath.substring(0, notePath.length-3);
@@ -221,6 +225,18 @@ export class FolderNote {
         await this.app.vault.adapter.write(this.notePath, noteInitContent);
     }
 
+    // rename through the file manager so links to the file are updated;
+    // fall back to the adapter when the vault has not indexed the path yet
+    async renamePath(oldPath: string, newPath: string) {
+        const file = this.app.vault.getAbstractFileByPath(oldPath);
+        if (file) {
+            await this.app.fileManager.renameFile(file, newPath);
+        }
+        else {
+            await this.app.vault.adapter.rename(oldPath, newPath);
+        }
+    }
+
     // create folder by note
     async newNoteFolder() {
         if (this.method == NoteFileMethod.Outside) {
@@ -235,7 +251,7 @@ export class FolderNote {
             if (!folderExists) {
                 await this.app.vault.adapter.mkdir(folderPath);
                 const newNotePath = folderPath + '/' + this.noteBase + '.md';
-                await this.app.vault.adapter.rename(this.notePath, newNotePath);
+                await this.renamePath(this.notePath, newNotePath);
                 await this.app.workspace.openLinkText(newNotePath, '', false, { active: true });
             }
         }
@@ -338,7 +354,7 @@ export class FolderNote {
                 const oldNotePaths = this.getFolderNotePath(oldPath);
                 const newNotePaths = this.getFolderNotePath(newPath.path);
                 if (oldNotePaths[1] != newNotePaths[1]) {
-                    await this.app.vault.adapter.rename(oldNotePaths[0], newNotePaths[0]);
+                    await this.renamePath(oldNotePaths[0], newNotePaths[0]);
                 }
             }
         }
@@ -350,7 +366,7 @@ export class FolderNote {
                 // console.log('newPath: ', newPath.path);
                 const oldFolderPath = this.getNoteFolderPath(oldPath);
                 const newFolderPath = this.getNoteFolderPath(newPath.path);
-                await this.app.vault.adapter.rename(oldFolderPath, newFolderPath);
+                await this.renamePath(oldFolderPath, newFolderPath);
             }
         }
     }
@@ -406,7 +422,7 @@ export class FolderNote {
                     const newFolderPath = this.filesToRename[1];
                     // console.log('Mod Old Path:', oldFolderPath);
                     // console.log('Mod New Path:', newFolderPath);
-                    void this.app.vault.adapter.rename(oldFolderPath, newFolderPath);
+                    void this.renamePath(oldFolderPath, newFolderPath);
                     this.filesToRename = [];
                     this.filesToRenameSet = false;
                 }
