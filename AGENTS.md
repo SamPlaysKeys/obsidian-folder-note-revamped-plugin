@@ -28,6 +28,7 @@ This file is also the single source of truth for `.github/copilot-instructions.m
 | `scripts/e2e-obsidian.mjs` | End-to-end test against a real running Obsidian (local only). |
 | `.github/workflows/ci.yml` | CI: `npm run check` on push to `main` and PRs. |
 | `.github/workflows/release.yml` | Release: on tag push (or manual run), builds and publishes a GitHub release. |
+| `.github/workflows/download-badge.yml`, `scripts/download-badge.mjs` | Daily: sums `main.js` downloads across all releases and pushes `downloads.json` (shields.io endpoint format) to the `badges` branch; the README Downloads badge reads it. `main.js` is used because BRAT fetches all three assets per install, so the repo-wide total overcounts. |
 | `doc/`, `image/` | Documentation and README images (`image/logo.svg` is the logo shown at the top of the README). README links point at the `main` branch of this repo. |
 | `LICENSE.md` | MIT, copyright shared by xpgo (2021) and SamPlaysKeys (2026). |
 | `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md` | Agent instructions. `CLAUDE.md` and the Copilot file only point at `AGENTS.md`. |

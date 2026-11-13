@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/SamPlaysKeys/obsidian-folder-note-revamped-plugin/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/SamPlaysKeys/obsidian-folder-note-revamped-plugin?style=for-the-badge"></a>
-  <a href="https://github.com/SamPlaysKeys/obsidian-folder-note-revamped-plugin/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/SamPlaysKeys/obsidian-folder-note-revamped-plugin/total?style=for-the-badge"></a>
+  <a href="https://github.com/SamPlaysKeys/obsidian-folder-note-revamped-plugin/releases"><img alt="Downloads" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FSamPlaysKeys%2Fobsidian-folder-note-revamped-plugin%2Fbadges%2Fdownloads.json&style=for-the-badge"></a>
   <a href="LICENSE.md"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge"></a>
 </p>
 
