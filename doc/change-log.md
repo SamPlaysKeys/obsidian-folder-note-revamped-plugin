@@ -23,6 +23,9 @@ Version numbering restarts at 1.0.1 for Folder Note Revamped. The jump accounts 
 - remove the title from the settings page (1.0.7)
 - clean up the code for the Obsidian plugin review: `let`/`const` instead of `var`, typed ccard and rename/delete code, awaited promises, Obsidian's element helpers, popout window support for the explorer click handler and timers, and the default settings are no longer overwritten (1.0.7)
 - stop attaching a zip file to releases; only `main.js`, `manifest.json` and `styles.css` are published (1.0.7)
+- fix a note being treated as a folder note when its name only ends with the folder's name (for example `Meeting Notes/Notes.md` with the Inside method); renaming such a note no longer renames its parent folder (1.0.8)
+- rename folders and notes through Obsidian's file manager instead of the raw file system, so links to renamed items are updated according to your Obsidian settings (1.0.8)
+- replace theme CSS variables that no longer exist in Obsidian (`--text-nav-selected`, `--background-accent`) with current ones, so folders that have a note and the ccard card background use your theme's colors again (1.0.8)
 
 ## 0.7.x
 
