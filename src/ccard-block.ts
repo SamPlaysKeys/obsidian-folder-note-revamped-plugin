@@ -61,34 +61,47 @@ export class ccardProcessor {
         let folderPath = '';
         // the note that contains the block, not the active note (hover previews, embeds, canvas)
         const notePath = ctx.sourcePath;
-        if (yaml.folder) {
-            const folderExist = yaml.folder == '/' ||
-                this.app.vault.getAbstractFileByPath(yaml.folder) instanceof TFolder;
-            if (folderExist) folderPath = yaml.folder;
+        if (yaml.folder != null) {
+            if (yaml.folder == '/' || yaml.folder == '') {
+                folderPath = '/';
+            }
+            else if (this.app.vault.getAbstractFileByPath(yaml.folder) instanceof TFolder) {
+                folderPath = yaml.folder;
+            }
+            else {
+                console.warn(`ccard (folder_brief_live): folder "${yaml.folder}" not found in the vault.`);
+                return null;
+            }
         }
         else if (notePath) {
             folderPath = await folderNote.getNoteFolderBriefPath(notePath);
         }
-        
-        if (folderPath.length > 0) {
-            const folderBrief = new FolderBrief(this.app);
-
-            // brief options
-            if (yaml.briefMax) {
-                folderBrief.briefMax = yaml.briefMax;
-            }
-            if (yaml.noteOnly != undefined) {
-                folderBrief.noteOnly = yaml.noteOnly;
-            }
-
-            // cards options
-            const briefCards = await folderBrief.makeBriefCards(folderPath, notePath);
-            briefCards.fromYamlOptions(yaml);
-            
-            // generate el
-            const ccardElem = briefCards.getDocElement(this.app);
-            return ccardElem;
+        else {
+            console.warn('ccard (folder_brief_live): no "folder" given and the block has no source note.');
+            return null;
         }
-        return null;
+
+        if (folderPath.length == 0) {
+            console.warn(`ccard (folder_brief_live): could not determine a folder for note "${notePath}".`);
+            return null;
+        }
+
+        const folderBrief = new FolderBrief(this.app);
+
+        // brief options
+        if (yaml.briefMax) {
+            folderBrief.briefMax = yaml.briefMax;
+        }
+        if (yaml.noteOnly != undefined) {
+            folderBrief.noteOnly = yaml.noteOnly;
+        }
+
+        // cards options
+        const briefCards = await folderBrief.makeBriefCards(folderPath, notePath);
+        briefCards.fromYamlOptions(yaml);
+        
+        // generate el
+        const ccardElem = briefCards.getDocElement(this.app);
+        return ccardElem;
     }
 }
