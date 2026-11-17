@@ -8,7 +8,7 @@ This file is also the single source of truth for `.github/copilot-instructions.m
 - An Obsidian plugin: click a folder in the file explorer to open a note that describes the folder (`<folder>/<folder>.md`). It also provides a `ccard` code block that renders cards for a folder's notes.
 - It is a revival of [xpgo/obsidian-folder-note-plugin](https://github.com/xpgo/obsidian-folder-note-plugin), which has been unmaintained since 2021 and no longer loads in modern Obsidian. Original code and ideas are by **xpgo**; keep that credit (see [Attribution](#attribution)).
 - Repo: `SamPlaysKeys/obsidian-folder-note-revamped-plugin`. Plugin ID: `folder-note-revamped` (deliberately different from the original `folder-note-plugin`, so both can coexist and settings do not clash). Do not change the ID.
-- Distributed through GitHub releases and [BRAT](https://obsidian.md/plugins?id=obsidian42-brat), not the community plugin directory.
+- Distributed through Obsidian's community plugin directory ([listing](https://community.obsidian.md/plugins/folder-note-revamped)), which is the primary install method and reads the same GitHub releases. [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) is kept as a deliberately manual method for early testing and pinning versions.
 
 ## Repo layout
 
@@ -52,7 +52,7 @@ Always run `npm run check` before committing. If you touch behavior, also run `n
 1. **Compile target must stay ES2015 or newer (currently `es2018` in `tsconfig.json`).** The original plugin used `es5`, which emits `_super.apply(this, arguments)` for subclasses. Obsidian's `Plugin` and `PluginSettingTab` are native ES6 classes, so that throws `Class constructor ... cannot be invoked without 'new'` and the plugin silently fails to load (shows as enabled, nothing in the console). `check-build.mjs` guards against this. Do not lower the target.
 2. `@rollup/plugin-typescript` must keep `include: ['src/**/*.ts']` with the explicit tsconfig, otherwise it skips `main.ts` and the build fails with "enum is reserved".
 3. `obsidian` is external in the bundle (`require('obsidian')`). Do not bundle it.
-4. Version bumps must keep `manifest.json`, `package.json` and `versions.json` in sync (`versions.json[version] == minAppVersion`). `check-build.mjs` enforces this. The release tag must equal the manifest version exactly, with **no `v` prefix** (BRAT requires it).
+4. Version bumps must keep `manifest.json`, `package.json` and `versions.json` in sync (`versions.json[version] == minAppVersion`). `check-build.mjs` enforces this. The release tag must equal the manifest version exactly, with **no `v` prefix** (Obsidian and BRAT require it).
 5. Do not add a donation or funding link for the original author's account, and do not remove xpgo's attribution (see [Attribution](#attribution)).
 6. Keep the plugin working on desktop and mobile (`isDesktopOnly: false`). Avoid Node/Electron APIs in `src/`.
 
@@ -76,7 +76,7 @@ If a plugin shows as enabled but `app.plugins.plugins['folder-note-revamped']` i
 2. Update the changelog in `doc/change-log.md` (the `## 1.0.x` list; it is the only changelog, the README just links to it). Tag each entry with its version by ending the line with `(1.0.x)` or `, 1.0.x)` after a link: those lines become the release notes (`scripts/release-notes.mjs`), and `npm run check` fails if the manifest version has none. Thank contributors (see [Attribution](#attribution)).
 3. `npm run check`, commit, push to `main`.
 4. `git tag <version> && git push origin <version>` (tag is exactly the version, no `v`).
-5. The release workflow publishes a non-draft release with `main.js`, `manifest.json`, `styles.css`, and the change log entries for that version as the notes. If tags are pushed out of order, make sure the newest version is marked Latest (`gh release edit <version> --latest`), because BRAT installs the latest release. BRAT only installs from non-draft releases that have these assets.
+5. The release workflow publishes a non-draft release with `main.js`, `manifest.json`, `styles.css`, and the change log entries for that version as the notes. If tags are pushed out of order, make sure the newest version is marked Latest (`gh release edit <version> --latest`), because the community plugin directory and BRAT install the latest release. Both only install from non-draft releases that have these assets.
 
 Versioning restarted at `1.0.1` for this fork (the original's last release was `0.7.3`).
 

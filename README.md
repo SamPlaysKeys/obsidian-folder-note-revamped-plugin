@@ -28,14 +28,24 @@ A revamp of [xpgo's Folder Note plugin](https://github.com/xpgo/obsidian-folder-
 
 ## Install
 
-### With BRAT (recommended)
+### From Obsidian's community plugins (recommended)
 
-Folder Note Revamped is not in the Obsidian community plugin list, so the easiest way to install it is with the [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat):
+Folder Note Revamped is in the [Obsidian community plugin list](https://community.obsidian.md/plugins/folder-note-revamped):
+
+1. Open Settings -> Community plugins and choose **Browse**.
+2. Search for **Folder Note Revamped** and choose **Install**.
+3. Enable the plugin.
+
+Obsidian updates it for you like any other community plugin.
+
+### With BRAT (manual, for testing releases early)
+
+[BRAT](https://obsidian.md/plugins?id=obsidian42-brat) installs a plugin straight from its GitHub releases. Use it only if you want to try a version before it reaches the community plugin list, or to pin a specific version:
 
 1. Install **Obsidian42 - BRAT** from Obsidian's community plugins and enable it.
 2. Follow the [BRAT quick guide](https://tfthacker.com/brat-quick-guide) and choose **Add Beta plugin**.
 3. Paste this repo URL: `https://github.com/SamPlaysKeys/obsidian-folder-note-revamped-plugin`
-4. Pick the latest version, then enable **Folder Note Revamped** in Settings -> Community plugins.
+4. Pick the version, then enable **Folder Note Revamped** in Settings -> Community plugins.
 
 BRAT checks for new releases and can update the plugin for you.
 
@@ -167,7 +177,7 @@ Details for AI coding agents and maintainers are in [AGENTS.md](https://github.c
 1. Bump the version in `manifest.json`, `package.json` and `versions.json` (same value; `versions.json` maps it to `minAppVersion`).
 2. Make sure `doc/change-log.md` has entries tagged with that version. `npm run check` fails if there are none.
 3. `npm run check`, commit and push to `main`.
-4. `git tag <version> && git push origin <version>`. The tag is exactly the version, with no `v` prefix (BRAT requires that).
+4. `git tag <version> && git push origin <version>`. The tag is exactly the version, with no `v` prefix (Obsidian and BRAT require that).
 5. The release workflow publishes a release with `main.js`, `manifest.json`, `styles.css`, and uses the change log entries for that version as the release notes. If several tags are pushed close together, check afterwards that the newest version is the one marked Latest (`gh release list`); fix it with `gh release edit <version> --latest`.
 
 ## License
