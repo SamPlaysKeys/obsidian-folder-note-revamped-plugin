@@ -39,6 +39,9 @@ export class ccardProcessor {
                     el.appendChild(docEl);
                 }
             }
+            else {
+                console.warn(`ccard: unknown type "${yaml.type}", expected "static" or "folder_brief_live".`);
+            }
         }
         catch (error) {
             console.error('Code Block: ccard', error)
