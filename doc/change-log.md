@@ -26,6 +26,9 @@ Version numbering restarts at 1.0.1 for Folder Note Revamped. The jump accounts 
 - fix a note being treated as a folder note when its name only ends with the folder's name (for example `Meeting Notes/Notes.md` with the Inside method); renaming such a note no longer renames its parent folder (1.0.8)
 - rename folders and notes through Obsidian's file manager instead of the raw file system, so links to renamed items are updated according to your Obsidian settings (1.0.8)
 - replace theme CSS variables that no longer exist in Obsidian (`--text-nav-selected`, `--background-accent`) with current ones, so folders that have a note and the ccard card background use your theme's colors again (1.0.8)
+- a `folder_brief_live` ccard block in a note at the vault root now lists the vault root instead of rendering nothing; `folder: /` and an empty `folder:` also mean the vault root (1.0.9)
+- ccard blocks now explain in the developer console why they render nothing: a `folder:` that does not exist in the vault, a block with no source note, a folder that cannot be determined, and an unknown `type:` (1.0.9)
+- document the Obsidian community plugin directory as the recommended install method in the README, and keep BRAT as the manual method for testing releases early (1.0.9)
 
 ## 0.7.x
 
