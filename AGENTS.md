@@ -106,6 +106,7 @@ Versioning restarted at `1.0.1` for this fork (the original's last release was `
 
 Good starting points, roughly by value:
 
+- `FolderNote.renameDelayMs` (1000 ms, inherited from the original) delays Inside-mode folder/note rename sync. It is probably longer than needed; try lowering it and run the unit tests and the e2e burst/move checks.
 - The document-level click listener is registered on the main window only; popout windows are missed (use `registerDomEvent` per window / `activeDocument`).
 - Renames go through `FolderNote.renamePath` (`app.fileManager.renameFile`, which updates links). Other file operations still use `vault.adapter.write/list/exists/mkdir` and `trashLocal`. Prefer `vault.create`, `fileManager.trashFile` (needs a higher `minAppVersion`). `adapter.list` includes hidden folders.
 - Null dereferences (`getActiveFile()`, `lastElementChild`, etc.) need guards.

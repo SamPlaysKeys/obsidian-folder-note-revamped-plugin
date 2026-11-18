@@ -24,6 +24,8 @@ export class FolderNote {
     // for rename
     renameQueue: { from: string, to: string }[] = [];
     renameTimer: number | null = null;
+    // Inside-mode sync waits so Obsidian can finish its own rename events first. The value is inherited
+    // from the original plugin and its necessity is unverified, so it may be shortened later.
     renameDelayMs = 1000;
 
     constructor(app: App, methodStr: string, indexBase: string) {
