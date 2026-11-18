@@ -260,20 +260,21 @@ export class FolderNote {
     // expand content template
     async expandContent(template: string) {
         // keyword: {{FOLDER_NAME}}, {{FOLDER_PATH}}
+        // replacer functions, so `$&`, `$$` etc. in a name or brief are not read as replacement patterns
         const folderName = this.folderPath.split('/').pop();
         let content = template
-            .replace(/{{FOLDER_NAME}}/g, folderName)
-            .replace(/{{FOLDER_PATH}}/g, this.folderPath)
+            .replace(/{{FOLDER_NAME}}/g, () => folderName)
+            .replace(/{{FOLDER_PATH}}/g, () => this.folderPath)
         // keyword: {{FOLDER_BRIEF}}
         if (content.contains('{{FOLDER_BRIEF}}')) {
             const folderBrief = new FolderBrief(this.app);
             const briefCards = await folderBrief.makeBriefCards(this.folderPath, this.notePath);
-            content = content.replace('{{FOLDER_BRIEF}}', briefCards.getYamlCode());
+            content = content.replace('{{FOLDER_BRIEF}}', () => briefCards.getYamlCode());
         }
         // keyword: {{FOLDER_BRIEF_LIVE}}
         if (content.contains('{{FOLDER_BRIEF_LIVE}}')) {
             const briefLiveCode = '\n```ccard\ntype: folder_brief_live\n```\n';
-            content = content.replace('{{FOLDER_BRIEF_LIVE}}', briefLiveCode);
+            content = content.replace('{{FOLDER_BRIEF_LIVE}}', () => briefLiveCode);
         }
         return content;
     }

@@ -28,6 +28,7 @@ Version numbering restarts at 1.0.1 for Folder Note Revamped. The jump accounts 
 - replace theme CSS variables that no longer exist in Obsidian (`--text-nav-selected`, `--background-accent`) with current ones, so folders that have a note and the ccard card background use your theme's colors again (1.0.8)
 - a `folder_brief_live` ccard block in a note at the vault root now lists the vault root instead of rendering nothing; `folder: /` and an empty `folder:` also mean the vault root (1.0.9)
 - ccard blocks now explain in the developer console why they render nothing: a `folder:` that does not exist in the vault, a block with no source note, a folder that cannot be determined, and an unknown `type:` (1.0.9)
+- fix the new folder note template mangling text that contains `$` patterns: a folder name like `Price $& list`, or a note abstract with `$$` (for example LaTeX), no longer breaks `{{FOLDER_NAME}}`, `{{FOLDER_PATH}}` and `{{FOLDER_BRIEF}}` (1.0.9)
 - document the Obsidian community plugin directory as the recommended install method in the README, and keep BRAT as the manual method for testing releases early (1.0.9)
 
 ## 0.7.x
