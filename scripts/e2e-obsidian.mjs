@@ -292,57 +292,24 @@ try {
     check('ccard of the vault root does not list hidden folders like .obsidian', !tree.root.includes('.obsidian'), tree.root);
     check('ccard does not list notes in hidden folders', tree.sub.includes('InA') && !tree.sub.includes('Secret') && !tree.sub.includes('dotfolder'), tree.sub);
 
-    // ---- live ccard in a note at the vault root, and the console warnings for unresolved folders ----
+    // ---- live ccard in a note at the vault root ----
     const rootLive = ev(`
-        const d = ${JSON.stringify(DIR)};
         const rootNote = '__fnr-e2e-root__.md';
-        const make = (path, body) => app.vault.create(path, body);
-        await make(rootNote, '\`\`\`ccard\\ntype: folder_brief_live\\n\`\`\`');
-        await make(d + '/MissingFolder.md', '\`\`\`ccard\\ntype: folder_brief_live\\nfolder: __fnr-e2e-nope__\\n\`\`\`');
-        await make(d + '/UnknownType.md', '\`\`\`ccard\\ntype: nonsense\\n\`\`\`');
-        const warnings = [];
-        const origWarn = console.warn;
-        console.warn = (...a) => { warnings.push(a.join(' ')); };
-        const read = async (path) => {
+        await app.vault.create(rootNote, '\`\`\`ccard\\ntype: folder_brief_live\\n\`\`\`');
+        try {
             const leaf = app.workspace.getLeaf('tab');
-            await leaf.setViewState({type: 'markdown', state: {file: path, mode: 'preview'}, active: true});
+            await leaf.setViewState({type: 'markdown', state: {file: rootNote, mode: 'preview'}, active: true});
             await new Promise(r => setTimeout(r, 300));
             leaf.view.previewMode.rerender(true);
             await new Promise(r => setTimeout(r, 1500));
             const text = leaf.view.containerEl.querySelector('.markdown-preview-view').innerText;
             leaf.detach();
             return text;
-        };
-        try {
-            const root = await read(rootNote);
-            const rootWarnings = warnings.length;
-            const missing = await read(d + '/MissingFolder.md');
-            const unknown = await read(d + '/UnknownType.md');
-            return {root, rootWarnings, missing, warnings};
         } finally {
-            console.warn = origWarn;
             const f = app.vault.getAbstractFileByPath(rootNote);
             if (f) await app.vault.delete(f, true);
         }`);
-    check('live ccard in a note at the vault root lists the vault folders', rootLive.root.includes(DIR), rootLive.root);
-    check('live ccard in a root note does not warn', rootLive.rootWarnings === 0, rootLive.warnings.join('\n'));
-    check('live ccard with an unknown folder renders nothing and warns in the console',
-        !rootLive.missing.includes('Alpha') && rootLive.warnings.some((w) => w.includes('__fnr-e2e-nope__')), rootLive.warnings.join('\n'));
-    check('ccard with an unknown type warns in the console', rootLive.warnings.some((w) => w.includes('nonsense')), rootLive.warnings.join('\n'));
-
-    // ---- template placeholders with `$` patterns in the folder name and the brief ----
-    const dollar = ev(`
-        const d = ${JSON.stringify(DIR)};
-        const dir = d + '/Price $& list';
-        await app.vault.createFolder(dir);
-        await app.vault.create(dir + '/Costs.md', 'Costs $$5 and $& and $\\' more');
-        const fn = app.plugins.plugins[${JSON.stringify(ID)}].folderNote;
-        fn.setByFolderPath(dir);
-        const content = await fn.expandContent('# {{FOLDER_NAME}}\\n{{FOLDER_PATH}}\\n{{FOLDER_BRIEF}}');
-        fn.emptyPath();
-        return content;`);
-    check('template keeps `$&` in the folder name and path as plain text', dollar.includes('# Price $& list') && dollar.includes(`${DIR}/Price $& list`), dollar);
-    check('template keeps `$$`, `$&` and `$\'` of a note abstract as plain text (YAML doubles the quote)', dollar.includes("Costs $$5 and $& and $'' more") && !dollar.includes('{{FOLDER_BRIEF}}'), dollar);
+    check('live ccard in a note at the vault root lists the vault folders', rootLive.includes(DIR), rootLive);
 
     // ---- commands ----
     const brief = ev(`

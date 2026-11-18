@@ -25,6 +25,7 @@ This file is also the single source of truth for `.github/copilot-instructions.m
 | `rollup.config.js`, `tsconfig.json` | Build config (output is `main.js` in the repo root). |
 | `scripts/check-build.mjs` | Build sanity checks (run by CI). |
 | `scripts/release-notes.mjs` | Builds the GitHub release notes from the `doc/change-log.md` entries tagged with a version (used by the release workflow and `check-build.mjs`). |
+| `test/*.test.mjs`, `test/helpers.mjs`, `tsconfig.test.json` | Node unit tests (`node:test`, no extra dependencies) for the plugin logic. `npm run build:test` compiles `src/` to `.test-build/` (gitignored); the helpers load it against a stub `obsidian` module and a fake in-memory vault. Run by CI through `npm run check`. |
 | `scripts/e2e-obsidian.mjs` | End-to-end test against a real running Obsidian (local only). |
 | `.github/workflows/ci.yml` | CI: `npm run check` on push to `main` and PRs. |
 | `.github/workflows/release.yml` | Release: on tag push (or manual run), builds and publishes a GitHub release. |
@@ -41,7 +42,8 @@ npm install          # install deps
 npm run build        # rollup -> ./main.js
 npm run dev          # rollup watch mode
 npm run typecheck    # tsc --noEmit
-npm run check        # typecheck + build + scripts/check-build.mjs  (what CI runs; run before every commit)
+npm run test         # unit tests (compiles src to .test-build/, then node --test)
+npm run check        # typecheck + unit tests + build + scripts/check-build.mjs  (what CI runs; run before every commit)
 npm run test:e2e     # drives real Obsidian via its CLI (see below)
 ```
 
@@ -58,11 +60,16 @@ Always run `npm run check` before committing. If you touch behavior, also run `n
 
 ## Testing
 
+Where a test goes: logic that does not need Obsidian (path handling, template expansion, brief text, ccard option and warning handling) is a unit test in `test/`, which runs in milliseconds and in CI. Only behaviour that needs the real app (explorer clicks, hiding, real rendering, commands, rename events) belongs in the e2e script, which is slow and relies on Obsidian internals. Do not add e2e checks that only assert `console.warn` output. When you fix a bug, add a unit test that fails on the old code.
+
+### Unit tests
+`npm run test`. Add `test/<area>.test.mjs`; use `makeApp({ 'path.md': 'content' }, ['EmptyFolder'])` and `makeFolderNote(app, method)` from `test/helpers.mjs`. The stub `obsidian` module returns an empty class for anything it does not define, so add real behaviour to the helper only when a test needs it. Rendering needs a DOM, which is not available: stub `CardBlock.prototype.getDocElement` as in `test/ccard-block.test.mjs`.
+
 ### Build check (CI-safe)
 `node scripts/check-build.mjs` validates the manifest, version consistency, no ES5 class output, `obsidian` kept external, and loads `main.js` in Node with a stubbed `obsidian` module to instantiate the plugin.
 
 ### End-to-end (local only, needs Obsidian running with the CLI enabled)
-`npm run test:e2e` builds nothing itself: run `npm run build` first. By default it creates a throwaway vault in the OS temp dir, installs the built plugin, runs the 32 checks (load, settings, commands, Ctrl/Cmd+click note creation, hidden folder note, `.pdf`/`.base` files with the folder's name staying visible, ccard rendering, ccard in another pane while a different note is active, ccard listing the vault tree without hidden folders, live ccard in a vault-root note and the console warnings for unresolved folders/unknown types, template placeholders with `$` patterns, Insert Folder Brief, Make Current Note to Folder, rename sync, commands with no active file, no plugin errors), then removes the vault.
+`npm run test:e2e` builds nothing itself: run `npm run build` first. By default it creates a throwaway vault in the OS temp dir, installs the built plugin, runs the 27 checks (load, settings, commands, Ctrl/Cmd+click note creation, hidden folder note, `.pdf`/`.base` files with the folder's name staying visible, ccard rendering, ccard in another pane while a different note is active, ccard listing the vault tree without hidden folders, live ccard in a vault-root note, Insert Folder Brief, Make Current Note to Folder, rename sync, commands with no active file, no plugin errors), then removes the vault.
 
 - `npm run test:e2e -- <VaultName>` (or `VAULT=<VaultName>`) uses an existing vault instead. It overwrites the plugin folder in that vault and creates/deletes a `__fnr-e2e__` folder. **Never point it at the user's real vaults without asking.**
 - The CLI is `obsidian` (e.g. `/opt/homebrew/bin/obsidian`). Useful commands for manual debugging: `obsidian vault=<name> dev:debug on`, `dev:console`, `dev:errors`, `plugin:reload id=folder-note-revamped`, `plugins`, and `eval code='(async()=>{ ... })()'` (needs an IIFE; no top-level `return`; output lines start with `=> `).
