@@ -330,6 +330,20 @@ try {
         !rootLive.missing.includes('Alpha') && rootLive.warnings.some((w) => w.includes('__fnr-e2e-nope__')), rootLive.warnings.join('\n'));
     check('ccard with an unknown type warns in the console', rootLive.warnings.some((w) => w.includes('nonsense')), rootLive.warnings.join('\n'));
 
+    // ---- template placeholders with `$` patterns in the folder name and the brief ----
+    const dollar = ev(`
+        const d = ${JSON.stringify(DIR)};
+        const dir = d + '/Price $& list';
+        await app.vault.createFolder(dir);
+        await app.vault.create(dir + '/Costs.md', 'Costs $$5 and $& and $\\' more');
+        const fn = app.plugins.plugins[${JSON.stringify(ID)}].folderNote;
+        fn.setByFolderPath(dir);
+        const content = await fn.expandContent('# {{FOLDER_NAME}}\\n{{FOLDER_PATH}}\\n{{FOLDER_BRIEF}}');
+        fn.emptyPath();
+        return content;`);
+    check('template keeps `$&` in the folder name and path as plain text', dollar.includes('# Price $& list') && dollar.includes(`${DIR}/Price $& list`), dollar);
+    check('template keeps `$$`, `$&` and `$\'` of a note abstract as plain text (YAML doubles the quote)', dollar.includes("Costs $$5 and $& and $'' more") && !dollar.includes('{{FOLDER_BRIEF}}'), dollar);
+
     // ---- commands ----
     const brief = ev(`
         const file = app.vault.getAbstractFileByPath(${JSON.stringify(DIR + '/Created/Alpha.md')});
