@@ -309,15 +309,15 @@ export class FolderNote {
     
     // get the file breif path
     async getNoteFolderBriefPath(notePath: string) {
-        let folderPath = '';
+        if (!notePath || notePath.trim().length == 0) return '';
         const isFN = await this.isFolderNote(notePath);
         if (isFN) {
-            folderPath = this.getNoteFolderPath(notePath);
+            return this.getNoteFolderPath(notePath);
         }
-        else {
-            folderPath = notePath.substring(0, notePath.lastIndexOf('/'));
-        }
-        return folderPath;
+        // a note at the vault root has no slash: its folder is the root, "/"
+        const slashIndex = notePath.lastIndexOf('/');
+        if (slashIndex <= 0) return '/';
+        return notePath.substring(0, slashIndex);
     }
 
     // delete a folder 
