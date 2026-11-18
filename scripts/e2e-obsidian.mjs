@@ -345,6 +345,33 @@ try {
                 oldNote: !!app.vault.getAbstractFileByPath(${JSON.stringify(DIR + '/Renamed/Created.md')})};`);
     check('renaming a folder renames its folder note too', renamed.note && !renamed.oldNote, JSON.stringify(renamed));
 
+    // several folders renamed or moved in the same tick, as a script or a sync would do
+    const burst = ev(`
+        const rejections = [];
+        const onRej = (e) => rejections.push(String(e.reason));
+        window.addEventListener('unhandledrejection', onRej);
+        try {
+            for (const name of ['BurstA', 'BurstB', 'MoveMe']) {
+                await app.vault.createFolder(${JSON.stringify(DIR + '/')} + name);
+                await app.vault.create(${JSON.stringify(DIR + '/')} + name + '/' + name + '.md', name);
+            }
+            await app.vault.createFolder(${JSON.stringify(DIR + '/Dest')});
+            const f = (name) => app.vault.getAbstractFileByPath(${JSON.stringify(DIR + '/')} + name);
+            await Promise.all([
+                app.fileManager.renameFile(f('BurstA'), ${JSON.stringify(DIR + '/BurstA2')}),
+                app.fileManager.renameFile(f('BurstB'), ${JSON.stringify(DIR + '/BurstB2')}),
+                app.fileManager.renameFile(f('MoveMe'), ${JSON.stringify(DIR + '/Dest/MoveMe')}),
+            ]);
+            await new Promise(r => setTimeout(r, 3000));
+            const has = (name) => !!f(name);
+            return {a: has('BurstA2/BurstA2.md'), b: has('BurstB2/BurstB2.md'),
+                    moved: has('Dest/MoveMe/MoveMe.md'), rejections};
+        } finally {
+            window.removeEventListener('unhandledrejection', onRej);
+        }`);
+    check('folders renamed together all get their folder note renamed', burst.a && burst.b, JSON.stringify(burst));
+    check('a moved folder keeps its folder note and raises no errors', burst.moved && burst.rejections.length === 0, JSON.stringify(burst));
+
     // ---- commands with no active file must not throw ----
     const noFile = ev(`
         const leaf = app.workspace.getLeaf(false);

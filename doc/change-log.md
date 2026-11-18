@@ -30,6 +30,7 @@ Version numbering restarts at 1.0.1 for Folder Note Revamped. The jump accounts 
 - ccard blocks now explain in the developer console why they render nothing: a `folder:` that does not exist in the vault, a block with no source note, a folder that cannot be determined, and an unknown `type:` (1.0.9)
 - fix the new folder note template mangling text that contains `$` patterns: a folder name like `Price $& list`, or a note abstract with `$$` (for example LaTeX), no longer breaks `{{FOLDER_NAME}}`, `{{FOLDER_PATH}}` and `{{FOLDER_BRIEF}}` (1.0.9)
 - document the Obsidian community plugin directory as the recommended install method in the README, and keep BRAT as the manual method for testing releases early (1.0.9)
+- fix folder note sync losing renames in "Inside" mode: when several folders or folder notes are renamed at once (a script, a sync, a multi-select), every one now gets its folder note or folder renamed, not just the first; a rename that cannot be done (the name is taken, or the folder moved again) is skipped and logged instead of raising an unhandled error; moving a folder note out of its folder no longer renames the folder (1.0.10)
 
 ## 0.7.x
 

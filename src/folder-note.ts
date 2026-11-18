@@ -22,16 +22,14 @@ export class FolderNote {
     notePath: string;
     noteBase: string;
     // for rename
-    filesToRename: string[];
-    filesToRenameSet: boolean;
+    renameQueue: { from: string, to: string }[] = [];
+    renameTimer: number | null = null;
+    renameDelayMs = 1000;
 
     constructor(app: App, methodStr: string, indexBase: string) {
         this.app = app;
         this.setMethod(methodStr, indexBase);
         this.emptyPath();
-        // for rename
-        this.filesToRename = [];
-        this.filesToRenameSet = false;
     }
 
     // set the method
@@ -380,54 +378,60 @@ export class FolderNote {
             const newNotePaths = this.getFolderNotePath(newPath.path);
             const oldNotePathNew = newPath.path + '/' + oldNotePaths[1] + '.md';
             const noteExists = await this.app.vault.adapter.exists(oldNotePathNew);
-            if (noteExists) {
-                if (newNotePaths[0] != oldNotePathNew) {
-                    // put it to rename
-                    this.filesToRename.push(oldNotePathNew);
-                    this.filesToRename.push(newNotePaths[0]);
-                }
+            if (noteExists && newNotePaths[0] != oldNotePathNew) {
+                this.queueRename(oldNotePathNew, newNotePaths[0]);
             }
         }
-        else if (this.filesToRename.length == 0) {
-            // changing note name
+        else if (this.parentPath(oldPath) == this.parentPath(newPath.path)) {
+            // changing note name. A note that changes folder is not a rename: it is the
+            // event Obsidian sends for the notes inside a folder that was moved or renamed.
             const isFN = await this.isFolderNote(oldPath);
             if (isFN) {
                 const oldFolderPath = this.getNoteFolderPath(oldPath);
-                // find the new path
-                let noteDir = newPath.path;
-                noteDir = noteDir.substring(0, noteDir.lastIndexOf('/'));
-                noteDir = noteDir.substring(0, noteDir.lastIndexOf('/'));
-                let noteBase = newPath.path.split('/').pop() ?? '';
-                noteBase = noteBase.substring(0, noteBase.length-3);
-                let newFolderPath = '';
-                if (noteDir.length > 0) {
-                    newFolderPath = noteDir + '/' + noteBase;
-                } 
-                else {
-                    newFolderPath = noteBase;
-                }
-                // put it to rename
+                const noteBase = this.getFileBaseName(newPath.path);
+                const folderParent = this.parentPath(oldFolderPath);
+                const newFolderPath = folderParent.length > 0 ? folderParent + '/' + noteBase : noteBase;
                 if (oldFolderPath != newFolderPath) {
-                    this.filesToRename.push(oldFolderPath);
-                    this.filesToRename.push(newFolderPath);
+                    this.queueRename(oldFolderPath, newFolderPath);
                 }
             }
         }
-        // only do once a time
-        if (!this.filesToRenameSet && this.filesToRename.length > 0) {
-            this.filesToRenameSet = true;
-            window.setTimeout(() => {
-                // console.log('rename is running after 1 s.');
-                if (this.filesToRename.length) {
-                    const oldFolderPath = this.filesToRename[0];
-                    const newFolderPath = this.filesToRename[1];
-                    // console.log('Mod Old Path:', oldFolderPath);
-                    // console.log('Mod New Path:', newFolderPath);
-                    void this.renamePath(oldFolderPath, newFolderPath);
-                    this.filesToRename = [];
-                    this.filesToRenameSet = false;
+    }
+
+    parentPath(path: string) {
+        return path.substring(0, Math.max(path.lastIndexOf('/'), 0));
+    }
+
+    // Renames are done a moment later, after Obsidian has finished its own rename and
+    // sent the events for everything inside the folder. All renames queued in that
+    // moment are done, one after the other.
+    queueRename(from: string, to: string) {
+        if (this.renameQueue.some((item) => item.from == from && item.to == to)) return;
+        this.renameQueue.push({ from, to });
+        if (this.renameTimer === null) {
+            this.renameTimer = window.setTimeout(() => { void this.flushRenames(); }, this.renameDelayMs);
+        }
+    }
+
+    async flushRenames() {
+        if (this.renameTimer !== null) {
+            window.clearTimeout(this.renameTimer);
+            this.renameTimer = null;
+        }
+        const queue = this.renameQueue;
+        this.renameQueue = [];
+        for (const { from, to } of queue) {
+            try {
+                // the folder may have moved again, or the name may be taken since
+                const fromExists = await this.app.vault.adapter.exists(from);
+                const toExists = await this.app.vault.adapter.exists(to);
+                if (fromExists && !toExists) {
+                    await this.renamePath(from, to);
                 }
-            }, 1000);
+            }
+            catch (error) {
+                console.error(`Folder Note: could not rename ${from} to ${to}`, error);
+            }
         }
     }
 }
